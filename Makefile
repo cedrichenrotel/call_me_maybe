@@ -1,27 +1,24 @@
 PYTHON := python3
 UV := uv
-VENV := .venv
-PIP := $(VENV)/bin/pip
-PY := $(VENV)/bin/python
-FILE := src/main.py
+FILE := src/__main__.py
 
-.PHONY: install run debug clean lint lint-strict build
+.PHONY: install run debug clean lint lint-strict
 
-$(VENV)/bin/activate:
-	$(UV) venv $(VENV)
-	$(PIP) install --upgrade pip
-	touch $(VENV)/bin/activate
-
-venv: $(VENV)/bin/activate
+venv: cd $(VENV)
 
 install: venv
-	$(PIP) install -r requirements.txt
+	$(UV) sync
 
-run: venv
-	@PYTHONPATH=src $(PY) -W ignore src/main.py $(MAP)
 
-debug: venv
-	$(PY) -m pdb $(FILE)
+run:
+	$(UV) run python -m src \
+		--functions_definition data/input/functions_definition.json \
+		--input data/input/function_calling_tests.json \
+		--output data/output/function_calls.json
+
+debug:
+	$(UV) run python -m pdb $(FILE)
+
 
 clean:
 	rm -rf __pycache__ .mypy_cache .pytest_cache .uv_cache
@@ -29,15 +26,10 @@ clean:
 	find . -name "*.pyc" -delete
 
 lint: venv
-	$(PY) -m flake8 . --exclude=$(VENV)
-	$(PY) -m mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports\
+	$(UV) -m flake8 .
+	$(UV) -m mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports\
 		--disallow-untyped-defs --check-untyped-defs
 
 lint-strict: venv
-	$(PY) -m flake8 . --exclude=$(venv)
-	$(PY) -m mypy . --strict --exclude=$(VENV)
-
-build: venv
-	$(UV) pip install build
-	$(PY) -m build --outdir .
-	rm -rf *.egg-info
+	$(UV) -m flake8 .
+	$(UV) -m mypy . --strict
