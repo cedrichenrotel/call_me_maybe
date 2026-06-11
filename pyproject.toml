@@ -8,6 +8,7 @@ dependencies = [
     "llm-sdk",
     "numpy>=2.4.6",
     "pydantic>=2.13.4",
+    "torch==2.12.0+cpu",
 ]
 
 [tool.uv.workspace]
@@ -15,5 +16,15 @@ members = [
     "llm_sdk",
 ]
 
+[[tool.uv.index]]
+url = "https://pypi.org/simple"
+
+[[tool.uv.index]]
+url = "https://download.pytorch.org/whl/cpu"
+default = true
+
 [tool.uv.sources]
 llm-sdk = { workspace = true }
+
+[tool.uv]
+index-strategy = "unsafe-best-match"

@@ -1,13 +1,14 @@
 import sys
 try:
     from pydantic import ValidationError, BaseModel
-    from src.parser import ParseError, Parser
-    from src.models import (
+    from parser import ParseError, Parser
+    from models import (
         FunctionsDefinition,
         PromptTest,
     )
-    from src.load_json import parse_json
-    from src.utils import convert_in_models
+    from load_json import parse_json
+    from utils import convert_in_models
+    from generator_llm import GeneratorLlm
     import argparse
 except ImportError:
     sys.exit()
@@ -52,6 +53,9 @@ def main():
                                             data_fonction,
                                             FunctionsDefinition
                                         )
+        
+        for prompt in model_prompt:
+            rst = GeneratorLlm.execute_llm(prompt, model_function)
 
     except KeyboardInterrupt:
         print("[WARNING]: The programme was stopped manually")
