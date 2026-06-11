@@ -1,7 +1,7 @@
 import sys
 try:
-    from pydantic import BaseModel, field_validator
-    from error import ParseError
+    from pydantic import BaseModel
+    from typing import Any
 except ImportError:
     sys.exit()
 
@@ -17,4 +17,4 @@ class PromptTest(BaseModel):
 
 class FunctionCall(BaseModel):
     name: str
-    parameters: dict[str, any]
+    parameters: dict[str, Any]
