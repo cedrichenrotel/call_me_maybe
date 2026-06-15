@@ -1,21 +1,21 @@
 import sys
+from src.parser import Parser
+from src.models import FunctionsDefinition, PromptTest
+from src.load_json import parse_json
+from src.utils import convert_in_models
+from src.generator_llm import GeneratorLlm
+import argparse
 try:
     from pydantic import ValidationError, BaseModel
-    from parser import ParseError, Parser
-    from models import (
-        FunctionsDefinition,
-        PromptTest,
-    )
-    from load_json import parse_json
-    from utils import convert_in_models
-    from generator_llm import GeneratorLlm
-    import argparse
-except ImportError:
+except ImportError as e:
+    print(f'[IMPORT ERROR]: {e}')
     sys.exit()
 
 
 def main():
+    print('trololo')
     try:
+
         args_parser = argparse.ArgumentParser()
 
         args_parser.add_argument('--input', default=(
@@ -36,7 +36,7 @@ def main():
         try:
             valid_parser = Parser(**vars(args))
 
-        except (ParseError, ValidationError) as e:
+        except ValidationError as e:
             print(f'[ERROR] Parser: {e}')
             sys.exit()
 
@@ -53,13 +53,15 @@ def main():
                                             data_fonction,
                                             FunctionsDefinition
                                         )
-        
+
+        generator = GeneratorLlm()
         for prompt in model_prompt:
-            rst = GeneratorLlm.execute_llm(prompt, model_function)
+            rst = generator.execute_llm(prompt, model_function)
 
     except KeyboardInterrupt:
         print("[WARNING]: The programme was stopped manually")
         sys.exit()
+
 
 if __name__ == "__main__":
     main()

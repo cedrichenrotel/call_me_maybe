@@ -4,8 +4,6 @@ FILE := src/__main__.py
 
 .PHONY: install run debug clean lint lint-strict
 
-venv: cd $(VENV)
-
 install: venv
 	$(UV) sync
 
@@ -26,10 +24,10 @@ clean:
 	find . -name "*.pyc" -delete
 
 lint: venv
-	$(UV) -m flake8 .
+	$(UV) -m run flake8 .
 	$(UV) -m mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports\
 		--disallow-untyped-defs --check-untyped-defs
 
 lint-strict: venv
-	$(UV) -m flake8 .
+	$(UV) -m run flake8 .
 	$(UV) -m mypy . --strict

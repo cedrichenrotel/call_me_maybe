@@ -1,7 +1,7 @@
 import sys
 try:
     from pydantic import BaseModel, field_validator
-    from error import ParseError
+    # from src.error import ParseError
     from pathlib import Path
 except ImportError:
     sys.exit()
@@ -18,12 +18,13 @@ class Parser(BaseModel):
     def exit_path(cls, p: Path) -> Path:
 
         if not p.is_file():
-            raise FileNotFoundError(f'The path to the {p} file does not exist')
+            raise ValueError(f'The path to the {p} file does not exist')
         return p
 
     """verifie si le type de fichier est .json"""
     @field_validator('input', 'functions_definition', 'output')
-    def valid_type_file(cls, p: Path) -> None:
+    def valid_type_file(cls, p: Path) -> Path:
 
         if p.suffix != '.json':
-            raise ParseError(f'{p}: Incorrect file format')
+            raise ValueError(f'{p}: Incorrect file format')
+        return p
