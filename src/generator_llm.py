@@ -4,7 +4,6 @@ try:
     from src.models import FunctionCall, PromptTest, FunctionsDefinition
     import src.utils
     import torch
-    import numpy
     import json
 except ImportError as e:
     print(f'[IMPORT ERROR]: {e}')
@@ -26,21 +25,30 @@ class GeneratorLlm():
         text += 'Respond only in JSON: {"name": "...", "parameters": {...}}'
 
         lst_token: torch.Tensor = self.llm_model.encode(text)
-        #self.llm_model.get_path_to_vocab_file()
-        try:
-            json_tokens: list[str] = []
 
-            while not src.utils.bracket_validator(
-                self.llm_model.decode(json_tokens)
-                 ):
-                input_ids: list[float] = lst_token[0].tolist() + json_tokens
-                score: list[float] = self.llm_model.get_logits_from_input_ids(input_ids)
-                best_token: int = int(numpy.argmax(score))
-                json_tokens.append(best_token)
-                print(f"Generated: {json_tokens}")
+        try:
+            json_tokens: list[int] = [90]
+
+            while True:
+                # combine 2 liste de tokens deja existant en une liste
+                input_ids: list[float] = src.utils.build_input_ids(lst_token,
+                                                                   json_tokens)
+
+                # liste de tous les score des prochains token (1 score par token)
+                scores: list[float] = (self.llm_model.
+                                       get_logits_from_input_ids(input_ids))
+
+                # recupere la plus haute valeur du prochain token
+                json_tokens = src.utils.select_best_token(json_tokens, scores)
+
+                # condition d arret pour la boucle 
+                if src.utils.bracket_validator(
+                        self.llm_model.decode(json_tokens)):
+                    break
 
             json_str = self.llm_model.decode(json_tokens)
-            
+            print(f"json_str: {json_str}")
+
             data = json.loads(json_str)
             return FunctionCall(**data)
         except ValueError as e:

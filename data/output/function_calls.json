@@ -1,0 +1,74 @@
+[
+    {
+        "name": "fn_add_numbers",
+        "parameters": {
+            "a": 2,
+            "b": 3
+        }
+    },
+    {
+        "name": "fn_add_numbers",
+        "parameters": {
+            "a": 265,
+            "b": 345
+        }
+    },
+    {
+        "name": "fn_greet",
+        "parameters": {
+            "name": "name",
+            "type": "string"
+        }
+    },
+    {
+        "name": "fn_greet",
+        "parameters": {
+            "name": "name",
+            "value": "john"
+        }
+    },
+    {
+        "name": "fn_reverse_string",
+        "parameters": {
+            "input": "hello"
+        }
+    },
+    {
+        "name": "fn_reverse_string",
+        "parameters": {
+            "input": "world"
+        }
+    },
+    {
+        "name": "fn_get_square_root",
+        "parameters": {
+            "number": 16
+        }
+    },
+    {
+        "name": "fn_get_square_root",
+        "parameters": {
+            "number": 144
+        }
+    },
+    {
+        "name": "fn_substitute_string_with_regex",
+        "parameters": {
+            "regex": "([0-9]+)",
+            "replacement": "X"
+        }
+    },
+    {
+        "name": "fn_substitute_string_with_regex",
+        "parameters": {
+            "string": "Programming is fun"
+        }
+    },
+    {
+        "name": "fn_substitute_string_with_regex",
+        "parameters": {
+            "string": "The cat sat on the mat with another cat",
+            "regex": "cat"
+        }
+    }
+]

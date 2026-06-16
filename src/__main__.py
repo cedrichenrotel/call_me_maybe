@@ -1,11 +1,11 @@
 import sys
-from src.parser import Parser
-from src.models import FunctionsDefinition, PromptTest
-from src.load_json import parse_json
-from src.utils import convert_in_models
-from src.generator_llm import GeneratorLlm
-import argparse
 try:
+    from src.parser import Parser
+    from src.models import FunctionsDefinition, PromptTest
+    from src.load_json import parse_json, create_json
+    from src.utils import convert_in_models
+    from src.generator_llm import GeneratorLlm
+    import argparse
     from pydantic import ValidationError, BaseModel
 except ImportError as e:
     print(f'[IMPORT ERROR]: {e}')
@@ -13,7 +13,7 @@ except ImportError as e:
 
 
 def main():
-    print('trololo')
+
     try:
 
         args_parser = argparse.ArgumentParser()
@@ -55,8 +55,14 @@ def main():
                                         )
 
         generator = GeneratorLlm()
+
+        output: list[BaseModel] = []
         for prompt in model_prompt:
-            rst = generator.execute_llm(prompt, model_function)
+
+            rst: BaseModel = generator.execute_llm(prompt, model_function)
+            output.append(rst.model_dump())
+
+        create_json(valid_parser.output, output)
 
     except KeyboardInterrupt:
         print("[WARNING]: The programme was stopped manually")

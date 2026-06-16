@@ -2,6 +2,8 @@ import sys
 
 try:
     from pydantic import BaseModel
+    import torch
+    import numpy
 except ImportError:
     sys.exit()
 
@@ -31,4 +33,20 @@ def bracket_validator(s: str) -> bool:
         elif i == '}':
             if not stock or stock[-1] != ref[i]:
                 return False
+            stock.pop()
     return len(stock) == 0
+
+
+def build_input_ids(lst_token: torch.Tensor,
+                    json_tokens: list[str]) -> list[float]:
+
+    input_ids: list[float] = lst_token[0].tolist() + json_tokens
+    return input_ids
+
+
+def select_best_token(json_tokens: list[int],
+                      scores: list[float]) -> list[int]:
+
+    best_token: int = int(numpy.argmax(scores))
+    json_tokens.append(best_token)
+    return json_tokens
