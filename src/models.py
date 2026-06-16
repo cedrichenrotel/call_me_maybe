@@ -16,5 +16,6 @@ class PromptTest(BaseModel):
 
 
 class FunctionCall(BaseModel):
+    prompt: str
     name: str
     parameters: dict[str, Any]

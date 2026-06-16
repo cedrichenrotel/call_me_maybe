@@ -2,6 +2,7 @@ import sys
 try:
     from llm_sdk import Small_LLM_Model
     from src.models import FunctionCall, PromptTest, FunctionsDefinition
+    from src.constrained_decoding 
     import src.utils
     import torch
     import json
@@ -37,6 +38,9 @@ class GeneratorLlm():
                 # liste de tous les score des prochains token (1 score par token)
                 scores: list[float] = (self.llm_model.
                                        get_logits_from_input_ids(input_ids))
+                
+                # application des constrained coding
+                constrained = 
 
                 # recupere la plus haute valeur du prochain token
                 json_tokens = src.utils.select_best_token(json_tokens, scores)
@@ -47,9 +51,9 @@ class GeneratorLlm():
                     break
 
             json_str = self.llm_model.decode(json_tokens)
-            print(f"json_str: {json_str}")
-
+            print(f"{json_str}")
             data = json.loads(json_str)
+            data['prompt'] = prompt.prompt
             return FunctionCall(**data)
         except ValueError as e:
             print(f"[ERROR] GeneratorLlm(): {e}")
