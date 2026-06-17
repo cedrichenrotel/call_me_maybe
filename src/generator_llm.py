@@ -2,7 +2,8 @@ import sys
 try:
     from llm_sdk import Small_LLM_Model
     from src.models import FunctionCall, PromptTest, FunctionsDefinition
-    from src.constrained_decoding 
+    from src.load_json import parse_json
+    import src.constrained_decoding 
     import src.utils
     import torch
     import json
@@ -15,6 +16,13 @@ class GeneratorLlm():
 
     def __init__(self) -> None:
         self.llm_model: Small_LLM_Model = Small_LLM_Model()
+
+        # retourne en str le chemin du fichier ou est stocker la liste
+        # complète des tokens que le modèle (Qwen3-0.6B)
+        self.vocab_path: str = self.llm_model.get_path_to_vocab_file()
+
+        # liste de tous les tokens que l intelligeance connais
+        self.vocab: dict[str, int] = parse_json(self.vocab_path)
 
     def execute_llm(self, prompt: PromptTest,
                     lst_function: list[FunctionsDefinition]) -> FunctionCall:
@@ -35,15 +43,26 @@ class GeneratorLlm():
                 input_ids: list[float] = src.utils.build_input_ids(lst_token,
                                                                    json_tokens)
 
-                # liste de tous les score des prochains token (1 score par token)
+                # liste de tous les score des prochains token (1 score par
+                # token)
                 scores: list[float] = (self.llm_model.
                                        get_logits_from_input_ids(input_ids))
-                
-                # application des constrained coding
-                constrained = 
+
+                # convertion de token en str
+                json_str: str = self.llm_model.decode(json_tokens)
+
+                # prefiltre les token qui serait plus interessant
+                filter_score = src.constrained_decoding.constrained_decoding(
+                    scores,
+                    json_tokens,
+                    self.vocab,
+                    lst_function,
+                    json_str
+                )
 
                 # recupere la plus haute valeur du prochain token
-                json_tokens = src.utils.select_best_token(json_tokens, scores)
+                json_tokens = src.utils.select_best_token(json_tokens,
+                                                          filter_score)
 
                 # condition d arret pour la boucle 
                 if src.utils.bracket_validator(

@@ -6,7 +6,7 @@ except ImportError:
     sys.exit()
 
 
-def parse_json(file: Path) -> list[dict]:
+def parse_json(file: Path) -> dict[str, int]:
 
     with open(file, 'r') as f:
         data = json.load(f)
