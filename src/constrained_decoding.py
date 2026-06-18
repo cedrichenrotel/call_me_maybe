@@ -5,7 +5,7 @@ try:
 except ImportError:
     sys.exit()
 
-# retourne liste de token qui correspond au nomde fonction  
+# retourne liste de token qui correspond au nom de fonction  
 def filter_vocab_by_prefix(element: str, vocab: dict) -> list[int]:
 
     filter_score: list[int] = []
@@ -18,27 +18,79 @@ def filter_vocab_by_prefix(element: str, vocab: dict) -> list[int]:
     return filter_score
 
 # retourne tous les nom de fonction qui commence comme le preficxe
-def valid_fonction_name(prefix: str, function_name: list[str]) -> list[str]:
+def filter_list_str(prefix: str, elements: list[str]) -> list[str]:
 
-    return [element for element in function_name if element.startswith(prefix)]
+    return [element for element in elements if element.startswith(prefix)]
 
+
+def keyword_search(json_str: str, word: str) -> str:
+
+    prefix: list[str] = json_str.split(word)
+    return prefix[1]
+
+
+def filter_score(elements: list[str], prefix: str, vocab: dict,
+                 scores: list[float]) -> list[float]:
+
+    rst: list[int] = []
+
+    for element in elements:
+        rst.extend(filter_vocab_by_prefix(element[len(prefix):], vocab))
+
+    for index, _ in enumerate(scores):
+        if index not in rst:
+            scores[index] = float('-inf')
+    return scores
+    
 
 def constrained_decoding(scores: list[float], json_tokens: list[int],
                          vocab: dict, list_function: list[FunctionsDefinition],
                          json_str: str) -> list[float]:
 
-    rst: list[int] = []
-
-    if 'name' in json_str and 'parameters' not in json_str:
+    if '"name": ' in json_str and '"parameters": { ' not in json_str:
 
         list_name = [name.name for name in list_function]
-        prefix: list[str] = json_str.split('"name": "')
-        names: list[str] = valid_fonction_name(prefix[1], list_name)
+        prefix: str = keyword_search(json_str, '"name": "')
+        names_func: list[str] = filter_list_str(prefix, list_name)
 
-        for name in names:
-            rst.extend(filter_vocab_by_prefix(name[len(prefix[1]):], vocab))
+        new_scores: list[float] = filter_score(names_func, prefix, vocab,
+                                               scores)
 
-        for i in enumerate(scores):
-            if not scores[i] in rst:
-                scores[i] = float('-inf')
+    elif '"name": ' in json_str and '"parameters": { ' in json_str:
 
+        # recupere le bon nom de fonction
+        prefix: str = keyword_search(json_str, '"name": "')
+        find_word: str = prefix.split('"')[0]
+
+        function: FunctionsDefinition = (
+            next((element for element in list_function
+                  if element.name == find_word), None)
+                  )
+
+        if not function:
+            raise ValueError('Function not found')
+
+        # lister les dict de parameters
+        list_keys: list[str] = list(function.parameters.keys())
+
+        param_prefix: list[str] = keyword_search(json_str, '"parameters": {')
+
+        # gere le cas si '"' ouvrant de la clés est deja present
+        if param_prefix.startswith('"'):
+            param_prefix = param_prefix[1:]
+
+        # liste des cles de parameters non utiliser
+        list_unused_keys: list[str] = [key for key in list_keys
+                                       if not f'"{key}":' in json_str]
+
+        # liste de cles non utliser mais filtrer avec prefix
+        keys_list: list[str] = filter_list_str(param_prefix, list_unused_keys)
+
+        new_scores: list[float] = filter_score(keys_list, param_prefix, vocab,
+                                               scores)
+
+    else:
+        return scores
+        print(list_keys)
+        print(scores)
+    return new_scores

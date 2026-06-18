@@ -3,7 +3,7 @@ try:
     from llm_sdk import Small_LLM_Model
     from src.models import FunctionCall, PromptTest, FunctionsDefinition
     from src.load_json import parse_json
-    import src.constrained_decoding 
+    import src.constrained_decoding
     import src.utils
     import torch
     import json
@@ -64,10 +64,11 @@ class GeneratorLlm():
                 json_tokens = src.utils.select_best_token(json_tokens,
                                                           filter_score)
 
-                # condition d arret pour la boucle 
+                # condition d arret pour la boucle
                 if src.utils.bracket_validator(
                         self.llm_model.decode(json_tokens)):
                     break
+                print(json_str)
 
             json_str = self.llm_model.decode(json_tokens)
             print(f"{json_str}")
