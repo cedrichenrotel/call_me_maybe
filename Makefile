@@ -4,9 +4,8 @@ FILE := src/__main__.py
 
 .PHONY: install run debug clean lint lint-strict
 
-install: venv
+install:
 	$(UV) sync
-
 
 run:
 	$(UV) run python -m src \
@@ -17,17 +16,16 @@ run:
 debug:
 	$(UV) run python -m pdb $(FILE)
 
-
 clean:
 	rm -rf __pycache__ .mypy_cache .pytest_cache .uv_cache
 	rm -rf dist build *.egg-info
 	find . -name "*.pyc" -delete
 
-lint: venv
-	$(UV) -m run flake8 .
-	$(UV) -m mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports\
+lint:
+	$(UV) run flake8 .
+	$(UV) run mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports \
 		--disallow-untyped-defs --check-untyped-defs
 
-lint-strict: venv
-	$(UV) -m run flake8 .
-	$(UV) -m mypy . --strict
+lint-strict:
+	$(UV) run flake8 .
+	$(UV) run mypy . --strict
