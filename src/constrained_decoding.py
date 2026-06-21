@@ -52,14 +52,6 @@ def filter_score(elements: list[str], prefix: str, vocab: dict,
 def constrained_decoding(scores: list[float], json_tokens: list[int],
                          vocab: dict, list_function: list[FunctionsDefinition],
                          json_str: str) -> list[float]:
-    
-    # Nettoyage de base pour éviter les espaces blancs qui faussent la détection
-    json_str_clean = json_str.strip()
-
-    # ÉTAPE 1 : Forcer le début du JSON s'il est vide ou juste "{"
-    if json_str_clean == "" or json_str_clean == "{":
-        # On ne veut autoriser QUE les tokens qui commencent par '"name": "'
-        return filter_score(['"name": "'], "", vocab, scores)
 
     if '"name": "' in json_str and '"' not in keyword_search(json_str,
                                                              '"name": "'):
@@ -70,7 +62,7 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
         new_scores: list[float] = filter_score(names_func, prefix, vocab,
                                                scores)
 
-    elif '"name": "' in json_str and '"parameters": { ' in json_str:
+    elif '"name": "' in json_str and '"parameters": {' in json_str:
 
         # recupere le bon nom de fonction
         prefix: str = keyword_search(json_str, '"name": "')
@@ -85,7 +77,7 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
             raise ValueError('Function not found')
 
         # lister les dict de parameters
-        list_keys: list[str] = list(function.parameters.keys())
+        list_keys: list[str] = ['"' + k for k in function.parameters.keys()]
 
         param_prefix: str = keyword_search(json_str, '"parameters": {')
 
@@ -93,6 +85,9 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
         # gere le cas si '"' ouvrant de la clés est deja present
         if param.startswith(' "'):
             param = param[2:]
+
+        if '"' in param:
+            return scores
 
         # liste des cles de parameters non utiliser
         list_unused_keys: list[str] = [key for key in list_keys
