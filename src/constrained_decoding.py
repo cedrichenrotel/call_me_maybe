@@ -1,11 +1,11 @@
 import sys
 try:
-    from src.load_json import parse_json
     from src.models import FunctionsDefinition
 except ImportError:
     sys.exit()
 
-# retourne liste de token qui correspond au nom de fonction  
+
+# retourne liste de token qui correspond au nom de fonction
 def filter_vocab_by_prefix(element: str, vocab: dict) -> list[int]:
 
     filter_score: list[int] = []
@@ -19,6 +19,7 @@ def filter_vocab_by_prefix(element: str, vocab: dict) -> list[int]:
             filter_score.append(token_id)
 
     return filter_score
+
 
 # retourne tous les nom de fonction qui commence comme le prefixe
 def filter_list_str(prefix: str, elements: list[str]) -> list[str]:
@@ -50,9 +51,34 @@ def filter_score(elements: list[str], prefix: str, vocab: dict,
             scores[index] = float('-inf')
     return scores
 
-def selection_type(hint: str) -> str:
-    
 
+# typage de ma valeur  de la cles(type)
+def selection_type(hint: str, vocab: dict, scores: list[float]) -> list[float]:
+
+    if hint == 'boolean':
+
+        response_list: list[str] = ['false', 'true']
+
+        score = filter_score(response_list, "", vocab, scores)
+
+    elif hint == 'number':
+
+        response_list: list[str] = [
+            '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+            ]
+
+        score = filter_score(response_list, "", vocab, scores)
+
+    elif hint == 'string':
+
+        response_list: list[str] = ['"']
+
+        score = filter_score(response_list, "", vocab, scores)
+
+    else:
+        raise ValueError('def selection_type: unknown type')
+
+    return score
 
 
 def constrained_decoding(scores: list[float], json_tokens: list[int],
@@ -100,7 +126,7 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
 
         # liste de cles non utliser mais filtrer avec prefix
         keys_list: list[str] = filter_list_str(param, list_unused_keys)
-    
+
         # recuperer la valeur dans la cles(type)
         if '"' in param:
 
@@ -109,8 +135,10 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
             if key_name in function.parameters:
 
                 param_type: str = function.parameters[key_name]["type"]
-                print(f'type: {param_type}')
-                selection_type(param_type)
+                new_scores: list[float] = selection_type(param_type,
+                                                         vocab,
+                                                         scores)
+                return new_scores
 
             return scores
 
