@@ -27,36 +27,45 @@
         "prompt": "Greet john",
         "name": "fn_greet",
         "parameters": {
-            "name": "name",
-            "value": "john"
+            "name": "john",
+            "value": "hello"
         }
     },
     {
         "prompt": "Reverse the string 'hello'",
         "name": "fn_reverse_string",
         "parameters": {
-            "input": "hello"
+            "string": "hello"
         }
     },
     {
         "prompt": "Reverse the string 'world'",
         "name": "fn_reverse_string",
         "parameters": {
-            "input": "world"
+            "string": "world"
         }
     },
     {
         "prompt": "What is the square root of 16?",
         "name": "fn_get_square_root",
         "parameters": {
-            "number": 16
+            "type": "list",
+            "items": {
+                "type": "str",
+                "items": "numbers"
+            }
         }
     },
     {
         "prompt": "Calculate the square root of 144",
         "name": "fn_get_square_root",
         "parameters": {
-            "number": 144
+            "type": "object",
+            "properties": {
+                "number": {
+                    "type": "number"
+                }
+            }
         }
     },
     {
@@ -64,22 +73,24 @@
         "name": "fn_substitute_string_with_regex",
         "parameters": {
             "regex": "([0-9]+)",
-            "replacement": "X"
+            "replacement": "NUMBERS"
         }
     },
     {
         "prompt": "Replace all vowels in 'Programming is fun' with asterisks",
         "name": "fn_substitute_string_with_regex",
         "parameters": {
-            "string": "Programming is fun"
+            "regex": "([aeiouAEIOU])",
+            "replacement": "*"
         }
     },
     {
         "prompt": "Substitute the word 'cat' with 'dog' in 'The cat sat on the mat with another cat'",
         "name": "fn_substitute_string_with_regex",
         "parameters": {
-            "string": "The cat sat on the mat with another cat",
-            "regex": "cat"
+            "regex": "cat",
+            "replacement": "dog",
+            "string": "The cat sat on the mat with another cat"
         }
     }
 ]

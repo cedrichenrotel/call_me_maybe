@@ -20,18 +20,20 @@ def filter_vocab_by_prefix(element: str, vocab: dict) -> list[int]:
 
     return filter_score
 
-# retourne tous les nom de fonction qui commence comme le preficxe
+# retourne tous les nom de fonction qui commence comme le prefixe
 def filter_list_str(prefix: str, elements: list[str]) -> list[str]:
 
     return [element for element in elements if element.startswith(prefix)]
 
 
+# reourne un mot cles
 def keyword_search(json_str: str, word: str) -> str:
 
     prefix: list[str] = json_str.split(word)
     return prefix[-1]
 
 
+# selection tous les plus forte valeur des prochain tokens
 def filter_score(elements: list[str], prefix: str, vocab: dict,
                  scores: list[float]) -> list[float]:
 
@@ -48,13 +50,17 @@ def filter_score(elements: list[str], prefix: str, vocab: dict,
             scores[index] = float('-inf')
     return scores
 
+def selection_type(hint: str) -> str:
+
+
 
 def constrained_decoding(scores: list[float], json_tokens: list[int],
                          vocab: dict, list_function: list[FunctionsDefinition],
                          json_str: str) -> list[float]:
 
-    if '"name": "' in json_str and '"' not in keyword_search(json_str,
-                                                             '"name": "'):
+    if ('"name": "' in json_str and
+        '"' not in keyword_search(json_str, '"name": "') and
+       '"parameters": {' not in json_str):
 
         list_name = [name.name for name in list_function]
         prefix: str = keyword_search(json_str, '"name": "')
@@ -64,8 +70,8 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
 
     elif '"name": "' in json_str and '"parameters": {' in json_str:
 
-        # recupere le bon nom de fonction
-        prefix: str = keyword_search(json_str, '"name": "')
+        before_params = json_str.split('"parameters"')[0]
+        prefix: str = keyword_search(before_params, '"name": "')
         find_word: str = prefix.split('"')[0]
 
         function: FunctionsDefinition = (
@@ -77,27 +83,40 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
             raise ValueError('Function not found')
 
         # lister les dict de parameters
-        list_keys: list[str] = ['"' + k for k in function.parameters.keys()]
+        list_keys: list[str] = [k for k in function.parameters.keys()]
 
         param_prefix: str = keyword_search(json_str, '"parameters": {')
 
         param = param_prefix.split(',')[-1]
         # gere le cas si '"' ouvrant de la clés est deja present
         if param.startswith(' "'):
+
             param = param[2:]
 
-        if '"' in param:
-            return scores
-
         # liste des cles de parameters non utiliser
-        list_unused_keys: list[str] = [key for key in list_keys
-                                       if not f'"{key}":' in json_str]
+        list_unused_keys: list[str] = ['"' + key for key in list_keys
+                                       if not f'{key}":' in json_str]
 
         # liste de cles non utliser mais filtrer avec prefix
         keys_list: list[str] = filter_list_str(param, list_unused_keys)
+    
+        # recuperer la valeur dans la cles(type)
+        if '"' in param:
+
+            key_name: str = param.split(':')[0].strip('"')
+
+            if key_name in function.parameters:
+
+                param_type: str = function.parameters[key_name]["type"]
+                print(f'type: {param_type}')
+                selection_type(param_type)
+
+            return scores
 
         new_scores: list[float] = filter_score(keys_list, param, vocab,
                                                scores)
     else:
+
         return scores
+
     return new_scores

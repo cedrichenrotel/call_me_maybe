@@ -68,7 +68,6 @@ class GeneratorLlm():
                 if src.utils.bracket_validator(
                         self.llm_model.decode(json_tokens)):
                     break
-                print(json_str)
 
             json_str = self.llm_model.decode(json_tokens)
             print(f"{json_str}")
