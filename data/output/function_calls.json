@@ -19,7 +19,7 @@
         "prompt": "Greet shrek",
         "name": "fn_greet",
         "parameters": {
-            "name": "name",
+            "name": "shrek",
             "type": "string"
         }
     },
@@ -27,45 +27,35 @@
         "prompt": "Greet john",
         "name": "fn_greet",
         "parameters": {
-            "name": "john",
-            "value": "hello"
+            "name": "john"
         }
     },
     {
         "prompt": "Reverse the string 'hello'",
         "name": "fn_reverse_string",
         "parameters": {
-            "string": "hello"
+            "s": "hello"
         }
     },
     {
         "prompt": "Reverse the string 'world'",
         "name": "fn_reverse_string",
         "parameters": {
-            "string": "world"
+            "s": "world"
         }
     },
     {
         "prompt": "What is the square root of 16?",
         "name": "fn_get_square_root",
         "parameters": {
-            "type": "list",
-            "items": {
-                "type": "str",
-                "items": "numbers"
-            }
+            "a": 16
         }
     },
     {
         "prompt": "Calculate the square root of 144",
         "name": "fn_get_square_root",
         "parameters": {
-            "type": "object",
-            "properties": {
-                "number": {
-                    "type": "number"
-                }
-            }
+            "a": "144"
         }
     },
     {
@@ -89,8 +79,7 @@
         "name": "fn_substitute_string_with_regex",
         "parameters": {
             "regex": "cat",
-            "replacement": "dog",
-            "string": "The cat sat on the mat with another cat"
+            "replacement": "dog"
         }
     }
 ]
