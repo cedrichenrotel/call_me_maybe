@@ -36,7 +36,8 @@ class GeneratorLlm():
         lst_token: torch.Tensor = self.llm_model.encode(text)
 
         try:
-            json_tokens: list[int] = [90]
+
+            json_tokens: list[int] = []
 
             while True:
                 # combine 2 liste de tokens deja existant en une liste
@@ -50,7 +51,7 @@ class GeneratorLlm():
 
                 # convertion de token en str
                 json_str: str = self.llm_model.decode(json_tokens)
-
+                print(f"[DEBUG] json_str: {repr(json_str)}")
                 # prefiltre les token qui serait plus interessant
                 filter_score = src.constrained_decoding.constrained_decoding(
                     scores,
