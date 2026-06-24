@@ -75,4 +75,5 @@ class GeneratorLlm():
             data['prompt'] = prompt.prompt
             return FunctionCall(**data)
         except ValueError as e:
-            print(f"[ERROR] GeneratorLlm(): {e}")
+            print(f"[ERROR] GeneratorLlm.py: {e}")
+            sys.exit()
