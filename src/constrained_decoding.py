@@ -193,12 +193,12 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
 
         # toutes les clés écrites → fermer l'accolade
         if not list_unused_keys:
-            if ':' in param and param.split(':', 1)[1].strip():
-                close_bracket = vocab.get('}')
-                if close_bracket is not None:
-                    mask: list[float] = [float('-inf')] * len(scores)
-                    mask[close_bracket] = scores[close_bracket]
-                    return mask
+
+            close_bracket = vocab.get('}')
+            if close_bracket is not None:
+                mask: list[float] = [float('-inf')] * len(scores)
+                mask[close_bracket] = scores[close_bracket]
+                return mask
             return scores
 
         # rien écrit encore → forcer les clés valides avec guillemet ouvrant
@@ -240,12 +240,21 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
                 param_type: str = function.parameters[key_name]["type"]
 
                 if param_type == "string":
-                    if parts[1].count('"') < 2:
-
+                    after_colon = parts[1]
+                    print(f"[DEBUG string] after_colon: {repr(after_colon)}")
+                    print(f"[DEBUG string] count: {after_colon.count(chr(34))}")
+                    if after_colon.count('"') < 2:
+                        # string pas encore fermée → interdire }
                         for token_str, token_id in vocab.items():
-                            if '}' in token_str:
+                            if '}' in token_str or ',' in token_str:
                                 scores[token_id] = float('-inf')
-
+                        return scores
+                    else:
+                        # string fermée → s'il n'y a plus de clés, interdire ,
+                        if len(list_unused_keys) == 1:
+                            comma_token = vocab.get(',')
+                            if comma_token is not None:
+                                scores[comma_token] = float('-inf')
                         return scores
 
                 elif not parts[1].strip():

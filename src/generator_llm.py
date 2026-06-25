@@ -29,9 +29,10 @@ class GeneratorLlm():
 
         text: str = "Available functions:\n"
         for function in lst_function:
-            text += f"- {function.name}\n"
+            text += f"- {function.name}: {function.parameters}\n"
         text += f"request: {prompt.prompt}\n"
-        text += 'Respond only in JSON: {"name": "...", "parameters": {...}}'
+        text += ('Respond only in JSON: {"name": "<fonction.name>",'
+                 '"parameters": {"<param>": <value>}}')
 
         lst_token: torch.Tensor = self.llm_model.encode(text)
 
