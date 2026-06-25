@@ -162,10 +162,19 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
 
         list_keys: list[str] = list(function.parameters.keys())
 
-        # enlève seulement les espaces puis UN guillemet ouvrant si présent
+        # enlève les espaces puis UN guillemet ouvrant si présent
         param = param.lstrip(' ')
         if param.startswith('"'):
             param = param[1:]
+
+        if param.startswith('"') or param == '':
+            keys_without_quote = [key for key in list_keys
+                                  if f'{key}":' not in
+                                  param_prefix.replace(' ', '')]
+            keys_list: list[str] = filter_list_str('', keys_without_quote)
+            new_scores: list[float] = filter_score(keys_list, '', vocab,
+                                                   scores)
+            return new_scores
 
         # liste des clés non encore utilisées
         list_unused_keys: list[str] = ['"' + key for key in list_keys
@@ -182,13 +191,23 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
                     return mask
             return scores
 
-        # rien écrit encore → forcer le guillemet ouvrant de la clé
+        # rien écrit encore → forcer les tokens des clés valides
         if not param:
-            quote_token = vocab.get('"')
-            if quote_token is not None:
-                mask: list[float] = [float('-inf')] * len(scores)
-                mask[quote_token] = scores[quote_token]
-                return mask
+            keys_list: list[str] = filter_list_str('', list_unused_keys)
+            new_scores: list[float] = filter_score(keys_list, '', vocab,
+                                                   scores)
+            # isole le dernier paramètre en cours
+            param: str = param_prefix.split(',')[-1]
+            print(f"[DEBUG] param_prefix: {repr(param_prefix)}")
+            print(f"[DEBUG] param avant lstrip: {repr(param)}")
+            
+            param = param.lstrip(' ')
+            if param.startswith('"'):
+                param = param[1:]
+            
+            print(f"[DEBUG] param après lstrip: {repr(param)}")
+            print(f"[DEBUG] list_unused_keys: {list_unused_keys}")
+            return new_scores
 
         # clé fermée par " mais pas encore de ':' → forcer ':'
         param_stripped: str = param.strip()
