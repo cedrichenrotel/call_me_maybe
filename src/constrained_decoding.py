@@ -14,14 +14,21 @@ def filter_vocab_by_prefix(element: str, vocab: dict) -> list[int]:
     filter_score: list[int] = []
 
     for token_str, token_id in vocab.items():
-        clean_token: str = token_str.replace('Ġ', ' ').replace(' ', ' ')
+        # emplace les caractères spéciaux du tokenizer (Ġ qui représente
+        # un espace)
+        clean_token: str = token_str.replace('Ġ', ' ')
 
+        # autorise a la LLM de creer des espaces
         if len(clean_token) > 0 and clean_token.strip() == "":
             filter_score.append(token_id)
             continue
 
+        # Permet d enlever les espaces a gauche pour comparer correctement les
+        # mots
         match_token: str = clean_token.lstrip()
 
+        # si le token ou le debut de la string sont identique ajoute
+        # dans filter_tocken
         if match_token and (element.startswith(match_token) or
                             match_token.startswith(element)):
             filter_score.append(token_id)
@@ -50,7 +57,7 @@ def filter_score(elements: list[str], prefix: str, vocab: dict,
         rst.extend(filter_vocab_by_prefix(element[len(prefix):], vocab))
 
     if len(rst) == 0:
-        return scores  # rien trouvé → pas de contrainte
+        return scores
 
     rst_set: set[int] = set(rst)
     for index, _ in enumerate(scores):
@@ -83,6 +90,20 @@ def selection_type(hint: str, vocab: dict, scores: list[float]) -> list[float]:
             mask[token] = scores[token]
 
     return mask
+
+
+def is_key_complete(key: str, param_prefix: str) -> bool:
+    """Vérifie si une clé et sa valeur sont complètement écrites."""
+
+    clean = param_prefix.replace(' ', '')
+
+    if f'{key}":' not in clean:
+        return False
+    after_key = clean.split(f'{key}":')[1]
+
+    if ',' in after_key or '}' in after_key:
+        return True
+    return False
 
 
 def constrained_decoding(scores: list[float], json_tokens: list[int],
@@ -148,7 +169,6 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
         function: FunctionsDefinition = (
             next((f for f in list_function if f.name == find_word), None)
         )
-
         if not function:
             raise ValueError('Function not found')
 
@@ -162,24 +182,14 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
 
         list_keys: list[str] = list(function.parameters.keys())
 
+        # liste des clés non encore utilisées (avec guillemet ouvrant)
+        list_unused_keys: list[str] = ['"' + key for key in list_keys
+                                       if not is_key_complete(key,
+                                                              param_prefix)]
         # enlève les espaces puis UN guillemet ouvrant si présent
         param = param.lstrip(' ')
         if param.startswith('"'):
             param = param[1:]
-
-        if param.startswith('"') or param == '':
-            keys_without_quote = [key for key in list_keys
-                                  if f'{key}":' not in
-                                  param_prefix.replace(' ', '')]
-            keys_list: list[str] = filter_list_str('', keys_without_quote)
-            new_scores: list[float] = filter_score(keys_list, '', vocab,
-                                                   scores)
-            return new_scores
-
-        # liste des clés non encore utilisées
-        list_unused_keys: list[str] = ['"' + key for key in list_keys
-                                       if f'{key}":' not in
-                                       param_prefix.replace(' ', '')]
 
         # toutes les clés écrites → fermer l'accolade
         if not list_unused_keys:
@@ -191,24 +201,27 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
                     return mask
             return scores
 
-        # rien écrit encore → forcer les tokens des clés valides
+        # rien écrit encore → forcer les clés valides avec guillemet ouvrant
         if not param:
-            keys_list: list[str] = filter_list_str('', list_unused_keys)
-            new_scores: list[float] = filter_score(keys_list, '', vocab,
-                                                   scores)
-            # isole le dernier paramètre en cours
-            param: str = param_prefix.split(',')[-1]
-            print(f"[DEBUG] param_prefix: {repr(param_prefix)}")
-            print(f"[DEBUG] param avant lstrip: {repr(param)}")
-            
-            param = param.lstrip(' ')
-            if param.startswith('"'):
-                param = param[1:]
-            
-            print(f"[DEBUG] param après lstrip: {repr(param)}")
-            print(f"[DEBUG] list_unused_keys: {list_unused_keys}")
-            return new_scores
+            # vérifier si le guillemet ouvrant est déjà écrit dans param_prefix
+            raw_param = param_prefix.split(',')[-1].lstrip(' ')
+            print(f"[DEBUG raw param]: {repr(param)}")
 
+            if not raw_param.startswith('"'):
+
+                # guillemet pas encore écrit → forcer "
+                quote_token = vocab.get('"')
+                if quote_token is not None:
+                    mask: list[float] = [float('-inf')] * len(scores)
+                    mask[quote_token] = scores[quote_token]
+                    return mask
+            else:
+                # guillemet déjà écrit → forcer le nom de la clé
+                keys_without_quote: list[str] = [k[1:] for k in
+                                                 list_unused_keys]
+                new_scores: list[float] = filter_score(keys_without_quote, '',
+                                                       vocab, scores)
+            return new_scores
         # clé fermée par " mais pas encore de ':' → forcer ':'
         param_stripped: str = param.strip()
         if param_stripped.endswith('"') and ':' not in param_stripped:
@@ -228,6 +241,11 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
 
                 if param_type == "string":
                     if parts[1].count('"') < 2:
+
+                        for token_str, token_id in vocab.items():
+                            if '}' in token_str:
+                                scores[token_id] = float('-inf')
+
                         return scores
 
                 elif not parts[1].strip():
