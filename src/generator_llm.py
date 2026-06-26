@@ -23,6 +23,11 @@ class GeneratorLlm():
 
         # liste de tous les tokens que l intelligeance connais
         self.vocab: dict[str, int] = parse_json(self.vocab_path)
+        # Dans generator_llm.py, après avoir chargé le vocab
+        self.clean_vocab: dict[str, int] = {
+            token_str.replace('Ġ', ' '): token_id
+            for token_str, token_id in self.vocab.items()
+        }
 
     def execute_llm(self, prompt: PromptTest,
                     lst_function: list[FunctionsDefinition]) -> FunctionCall:
@@ -31,8 +36,7 @@ class GeneratorLlm():
         for function in lst_function:
             text += f"- {function.name}: {function.parameters}\n"
         text += f"request: {prompt.prompt}\n"
-        text += ('Respond only in JSON: {"name": "<fonction.name>",'
-                 '"parameters": {"<param>": <value>}}')
+        text += 'Respond only in JSON format with name and parameters.'
 
         lst_token: torch.Tensor = self.llm_model.encode(text)
 
@@ -52,12 +56,12 @@ class GeneratorLlm():
 
                 # convertion de token en str
                 json_str: str = self.llm_model.decode(json_tokens)
-                print(f"[DEBUG] json_str: {repr(json_str)}")
+
                 # prefiltre les token qui serait plus interessant
                 filter_score = src.constrained_decoding.constrained_decoding(
                     scores,
                     json_tokens,
-                    self.vocab,
+                    self.clean_vocab,
                     lst_function,
                     json_str
                 )

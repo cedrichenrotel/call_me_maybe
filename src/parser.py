@@ -1,7 +1,6 @@
 import sys
 try:
     from pydantic import BaseModel, field_validator
-    # from src.error import ParseError
     from pathlib import Path
 except ImportError:
     sys.exit()

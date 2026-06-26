@@ -67,5 +67,13 @@
     "returns": {
       "type": "string"
     }
+  },
+  {
+    "name": "fn_calculate_circle_area",
+    "parameters": {
+        "radius": {
+            "type": "number"
+        }
+    }
   }
 ]
