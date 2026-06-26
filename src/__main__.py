@@ -40,29 +40,53 @@ def main():
             print(f'[ERROR] Parser: {e}')
             sys.exit()
 
-        data_prompt: list[dict] = parse_json(valid_parser.input)
-        data_fonction: list[dict] = parse_json(
-                                        valid_parser.functions_definition
-                                        )
+        try:
+            data_prompt: list[dict] = parse_json(valid_parser.input)
+        except Exception as e:
+            print(f"[ERROR] input: function_calling_test.json -> {e}")
+            sys.exit()
 
-        model_prompt: list[BaseModel] = convert_in_models(
-                                            data_prompt,
-                                            PromptTest
-                                        )
-        model_function: list[BaseModel] = convert_in_models(
-                                            data_fonction,
-                                            FunctionsDefinition
-                                        )
+        try:
+            data_fonction: list[dict] = parse_json(
+                                            valid_parser.functions_definition
+                                            )
+        except Exception as e:
+            print(f"[ERROR] input: functions_definition.json -> {e}")
+            sys.exit()
 
-        generator = GeneratorLlm()
+        try:
+            model_prompt: list[BaseModel] = convert_in_models(
+                                                data_prompt,
+                                                PromptTest
+                                            )
+        except Exception as e:
+            print(f'[ERROR] input: function_calling_test."prompt": -> {e}')
+            sys.exit()
 
-        output: list[BaseModel] = []
-        for prompt in model_prompt:
+        try:
+            model_function: list[BaseModel] = convert_in_models(
+                                                data_fonction,
+                                                FunctionsDefinition
+                                            )
+        except Exception:
+            print("[ERROR] models.py: Failed to convert functions to"
+                  "FunctionsDefinition models")
+            sys.exit()
 
-            rst: BaseModel = generator.execute_llm(prompt, model_function)
-            output.append(rst.model_dump())
+        try:
+            generator = GeneratorLlm()
 
-        create_json(valid_parser.output, output)
+            output: list[BaseModel] = []
+            for prompt in model_prompt:
+
+                rst: BaseModel = generator.execute_llm(prompt, model_function)
+                output.append(rst.model_dump())
+
+            create_json(valid_parser.output, output)
+        except Exception as e:
+            print(f"[ERROR] output: main.py Failed to generate or save "
+                  f"output -> {e}")
+            sys.exit()
 
     except KeyboardInterrupt:
         print("[WARNING]: The programme was stopped manually")

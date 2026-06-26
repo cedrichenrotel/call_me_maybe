@@ -23,7 +23,7 @@ class GeneratorLlm():
 
         # liste de tous les tokens que l intelligeance connais
         self.vocab: dict[str, int] = parse_json(self.vocab_path)
-        # Dans generator_llm.py, après avoir chargé le vocab
+
         self.clean_vocab: dict[str, int] = {
             token_str.replace('Ġ', ' '): token_id
             for token_str, token_id in self.vocab.items()
@@ -77,9 +77,11 @@ class GeneratorLlm():
 
             json_str = self.llm_model.decode(json_tokens)
             print(f"{json_str}")
+
             data = json.loads(json_str)
             data['prompt'] = prompt.prompt
+
             return FunctionCall(**data)
-        except ValueError as e:
+        except json.decoder.JSONDecodeError as e:
             print(f"[ERROR] GeneratorLlm.py: {e}")
             sys.exit()
