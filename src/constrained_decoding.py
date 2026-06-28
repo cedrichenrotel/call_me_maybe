@@ -17,8 +17,8 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
     """
 
     print(f'[DEBUG] -> JSON_STR: {repr(json_str)}')
-    # ÉTAPE 1 : forcer l'écriture de '{"name":"' au début
-    if '"name": "' not in json_str and '"name":"' not in json_str:
+    json_clean: str = json_str.replace(' ', '')
+    if '"name":"' not in json_clean:
 
         opening_normalized: str = '{"name":"'
         normalized: str = json_str.replace(' ', '')
@@ -37,9 +37,7 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
         return scores
 
     # ÉTAPE 2 : le nom de la fonction est en cours d'écriture
-    elif (('"name": "' in json_str or '"name":"' in json_str) and
-          '"parameters": {' not in json_str and
-          '"parameters":{' not in json_str):
+    elif '"name":"' in json_clean and '"parameters":{' not in json_clean:
 
         if '"name": "' in json_str:
             prefix: str = utils.keyword_search(json_str, '"name": "')
@@ -59,8 +57,7 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
                                                      )
 
     # ÉTAPE 3 : les paramètres sont en cours d'écriture
-    elif (('"name": "' in json_str or '"name":"' in json_str) and
-          ('"parameters": {' in json_str or '"parameters":{' in json_str)):
+    elif '"name":"' in json_clean and '"parameters":{' in json_clean:
 
         before_params: str = json_str.split('"parameters"')[0]
 

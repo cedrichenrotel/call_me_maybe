@@ -7,17 +7,12 @@ def filter_vocab_by_prefix(element: str, vocab: dict[str, int]) -> list[int]:
     filter_score: list[int] = []
 
     for token_str, token_id in vocab.items():
-        # autorise a la LLM de creer des espaces
-        if len(token_str) > 0 and token_str == "":
+
+        if len(token_str) > 0 and token_str.strip() == "":
             filter_score.append(token_id)
             continue
-
-        # Permet d enlever les espaces a gauche pour comparer correctement les
-        # mots
         match_token: str = token_str.lstrip()
 
-        # si le token ou le debut de la string sont identique ajoute
-        # dans filter_tocken
         if match_token and (element.startswith(match_token) or
                             match_token.startswith(element)):
             filter_score.append(token_id)

@@ -17,8 +17,6 @@ class GeneratorLlm():
     def __init__(self) -> None:
         self.llm_model: Small_LLM_Model = Small_LLM_Model()
 
-        # retourne en str le chemin du fichier ou est stocker la liste
-        # complète des tokens que le modèle (Qwen3-0.6B)
         self.vocab_path: str = self.llm_model.get_path_to_vocab_file()
 
         # liste de tous les tokens que l intelligeance connais
