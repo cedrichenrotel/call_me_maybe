@@ -89,4 +89,18 @@ def is_key_complete(key: str, param_prefix: str) -> bool:
 
     if ',' in after_key or '}' in after_key:
         return True
+
+    if after_key.count('"') >= 2:
+        return True
+    return False
+
+
+def check_repetition(json_txt: str, min_len: int = 3) -> bool:
+
+    len_text = len(json_txt)
+
+    for i in range(min_len, len_text // 2 + 1):
+        if json_txt[len_text - i:] == json_txt[len_text - (2 * i):
+                                               len_text - i]:
+            return True
     return False

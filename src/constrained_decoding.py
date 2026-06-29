@@ -36,7 +36,6 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
                 scores[index] = float('-inf')
         return scores
 
-    # ÉTAPE 2 : le nom de la fonction est en cours d'écriture
     elif '"name":"' in json_clean and '"parameters":{' not in json_clean:
 
         if '"name": "' in json_str:
@@ -44,7 +43,6 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
         else:
             prefix: str = utils.keyword_search(json_str, '"name":"')
 
-        # nom déjà complet → on attend "parameters"
         if '"' in prefix:
             return scores
 
@@ -56,7 +54,6 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
                                                      scores
                                                      )
 
-    # ÉTAPE 3 : les paramètres sont en cours d'écriture
     elif '"name":"' in json_clean and '"parameters":{' in json_clean:
 
         before_params: str = json_str.split('"parameters"')[0]
@@ -81,23 +78,20 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
             param_prefix: str = utils.keyword_search(json_str,
                                                      '"parameters":{')
 
-        # isole le dernier paramètre en cours
         param: str = param_prefix.split(',')[-1]
 
         list_keys: list[str] = list(function.parameters.keys())
 
-        # liste des clés non encore utilisées (avec guillemet ouvrant)
         list_unused_keys: list[str] = ['"' + key for key in list_keys
                                        if not utils.is_key_complete(
                                            key,
                                            param_prefix
                                            )]
-        # enlève les espaces puis UN guillemet ouvrant si présent
+
         param = param.lstrip(' ')
         if param.startswith('"'):
             param = param[1:]
 
-        # toutes les clés écrites → fermer l'accolade
         if not list_unused_keys:
 
             close_bracket = vocab.get('}')
@@ -107,21 +101,17 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
                 return mask
             return scores
 
-        # rien écrit encore → forcer les clés valides avec guillemet ouvrant
         if not param:
-            # vérifier si le guillemet ouvrant est déjà écrit dans param_prefix
             raw_param = param_prefix.split(',')[-1].lstrip(' ')
 
             if not raw_param.startswith('"'):
-
-                # guillemet pas encore écrit → forcer "
                 quote_token = vocab.get('"')
+
                 if quote_token is not None:
                     mask: list[float] = [float('-inf')] * len(scores)
                     mask[quote_token] = scores[quote_token]
                     return mask
             else:
-                # guillemet déjà écrit → forcer le nom de la clé
                 keys_without_quote: list[str] = [k[1:] for k in
                                                  list_unused_keys]
                 new_scores: list[float] = utils.filter_score(
@@ -130,16 +120,17 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
                     vocab, scores
                     )
             return new_scores
-        # clé fermée par " mais pas encore de ':' → forcer ':'
+
         param_stripped: str = param.strip()
+
         if param_stripped.endswith('"') and ':' not in param_stripped:
             colon_token = vocab.get(':')
+
             if colon_token is not None:
                 mask: list[float] = [float('-inf')] * len(scores)
                 mask[colon_token] = scores[colon_token]
                 return mask
 
-        # ':' présent → fournir la valeur
         if ':' in param:
             parts: list[str] = param.split(':', 1)
             key_name: str = parts[0].strip(' "')
@@ -151,18 +142,30 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
                     after_colon = parts[1]
 
                     if after_colon.count('"') < 2:
-                        # string pas encore fermée → interdire }
+                        string_content: str = after_colon.lstrip('"')
+
+                        if (string_content and
+                           utils.check_repetition(string_content)):
+                            quote_token = vocab.get('"')
+
+                            if quote_token is not None:
+                                mask: list[float] = ([float('-inf')] *
+                                                     len(scores))
+                                mask[quote_token] = scores[quote_token]
+                                return mask
+
                         for token_str, token_id in vocab.items():
                             if '}' in token_str or ',' in token_str:
                                 scores[token_id] = float('-inf')
+
                         return scores
+
                     else:
-                        # string fermée → s'il n'y a plus de clés, interdire ,
-                        if len(list_unused_keys) == 1:
-                            comma_token = vocab.get(',')
-                            if comma_token is not None:
-                                scores[comma_token] = float('-inf')
-                        return scores
+                        mask: list[float] = [float('-inf')] * len(scores)
+                        comma_token = vocab.get(',')
+                        if comma_token is not None:
+                            mask[comma_token] = scores[comma_token]
+                        return mask
 
                 elif not parts[1].strip():
                     new_scores: list[float] = utils.selection_type(
@@ -174,7 +177,6 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
 
             return scores
 
-        # LLM en train d'écrire le nom de la clé
         keys_list: list[str] = utils.filter_list_str(param, list_unused_keys)
         new_scores: list[float] = utils.filter_score(keys_list, param, vocab,
                                                      scores)

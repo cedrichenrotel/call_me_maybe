@@ -41,8 +41,9 @@ class GeneratorLlm():
         try:
 
             json_tokens: list[int] = []
+            max_tokens = 200
 
-            while True:
+            while len(json_tokens) < max_tokens:
                 # combine 2 liste de tokens deja existant en une liste
                 input_ids: list[float] = src.utils.build_input_ids(lst_token,
                                                                    json_tokens)
@@ -74,6 +75,10 @@ class GeneratorLlm():
                 if src.utils.bracket_validator(
                         self.llm_model.decode(json_tokens)):
                     break
+
+            else:
+                print("[WARNING] Max tokens reached without a valid closing"
+                      "bracket.")
 
             json_str = self.llm_model.decode(json_tokens)
             print(f"{json_str}")
