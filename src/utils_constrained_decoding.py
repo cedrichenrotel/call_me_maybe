@@ -23,6 +23,7 @@ def filter_vocab_by_prefix(element: str, vocab: dict[str, int]) -> list[int]:
 def filter_list_str(prefix: str, elements: list[str]) -> list[str]:
     """Retourne tous les noms (clés ou fonctions) qui commencent par le
     préfixe."""
+
     return [element for element in elements if element.startswith(prefix)]
 
 

@@ -52,8 +52,10 @@ class GeneratorLlm():
                 scores: list[float] = (self.llm_model.
                                        get_logits_from_input_ids(input_ids))
 
-                # convertion de token en str
-                json_str: str = self.llm_model.decode(json_tokens)
+                json_str: str = self.llm_model.decode(json_tokens).replace(
+                    ' ',
+                    ''
+                    )
 
                 # prefiltre les token qui serait plus interessant
                 filter_score = src.constrained_decoding.constrained_decoding(
