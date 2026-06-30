@@ -24,7 +24,7 @@ clean:
 lint:
 	$(UV) run flake8 .
 	$(UV) run mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports \
-		--disallow-untyped-defs --check-untyped-defs
+		--disallow-untyped-defs --check-untyped-defs --exclude llm_sdk
 
 lint-strict:
 	$(UV) run flake8 .

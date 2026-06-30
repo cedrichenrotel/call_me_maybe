@@ -1,6 +1,6 @@
 import sys
 try:
-    from llm_sdk import Small_LLM_Model
+    from llm_sdk import Small_LLM_Model  # type: ignore
     from src.models import FunctionCall, PromptTest, FunctionsDefinition
     from src.load_json import parse_json
     import src.constrained_decoding

@@ -2,14 +2,18 @@ import sys
 
 try:
     from pydantic import BaseModel
+    from typing import TypeVar
     import torch
     import numpy
 except ImportError:
     sys.exit()
 
 
+T = TypeVar('T', BOUND=BaseModel)
+
+
 def convert_in_models(data: list[dict],
-                      obj: type[BaseModel]) -> list[BaseModel]:
+                      obj: type[T]) -> list[T]:
 
     obj_model: list[BaseModel] = []
 
@@ -38,7 +42,7 @@ def bracket_validator(s: str) -> bool:
 
 
 def build_input_ids(lst_token: torch.Tensor,
-                    json_tokens: list[str]) -> list[float]:
+                    json_tokens: list[int]) -> list[float]:
 
     input_ids: list[float] = lst_token[0].tolist() + json_tokens
     return input_ids

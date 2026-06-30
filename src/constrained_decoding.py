@@ -15,32 +15,40 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
     to the scores of subsequent tokens to ensure compliance with the function’s
     schema.
     """
-    
+
     json_clean: str = json_str.replace(' ', '')
+
     if '"name":"' not in json_clean:
 
         opening_normalized: str = '{"name":"'
         normalized: str = json_str.replace(' ', '')
-
         next_char: str = opening_normalized[0]
+
         for i in range(len(opening_normalized), 0, -1):
+
             if normalized.endswith(opening_normalized[:i]):
+
                 if i < len(opening_normalized):
                     next_char = opening_normalized[i]
+
                 break
 
         rst: set[int] = set(utils.filter_vocab_by_prefix(next_char, vocab))
+
         for index, _ in enumerate(scores):
+
             if index not in rst:
                 scores[index] = float('-inf')
+
         return scores
 
     elif '"name":"' in json_clean and '"parameters":{' not in json_clean:
 
         if '"name": "' in json_str:
             prefix: str = utils.keyword_search(json_str, '"name": "')
+
         else:
-            prefix: str = utils.keyword_search(json_str, '"name":"')
+            prefix = utils.keyword_search(json_str, '"name":"')
 
         if '"' in prefix:
             return scores
@@ -58,24 +66,31 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
         before_params: str = json_str.split('"parameters"')[0]
 
         if '"name": "' in before_params:
-            prefix: str = utils.keyword_search(before_params, '"name": "')
+            prefix = utils.keyword_search(before_params, '"name": "')
+
         else:
-            prefix: str = utils.keyword_search(before_params, '"name":"')
+            prefix = utils.keyword_search(before_params, '"name":"')
 
         find_word: str = prefix.split('"')[0].strip()
 
-        function: FunctionsDefinition = (
+        function: FunctionsDefinition | None = (
             next((f for f in list_function if f.name == find_word), None)
         )
+
         if not function:
             raise ValueError('connstrained_decoding.py -> Function not found')
 
         if '"parameters": {' in json_str:
-            param_prefix: str = utils.keyword_search(json_str,
-                                                     '"parameters": {')
+            param_prefix: str = utils.keyword_search(
+                json_str,
+                '"parameters": {'
+                )
+
         else:
-            param_prefix: str = utils.keyword_search(json_str,
-                                                     '"parameters":{')
+            param_prefix = utils.keyword_search(
+                json_str,
+                '"parameters":{'
+                )
 
         param: str = param_prefix.split(',')[-1]
 
@@ -88,32 +103,35 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
                                            )]
 
         param = param.lstrip(' ')
+
         if param.startswith('"'):
             param = param[1:]
 
         if not list_unused_keys:
+            close_bracket: int | None = vocab.get('}')
 
-            close_bracket = vocab.get('}')
             if close_bracket is not None:
                 mask: list[float] = [float('-inf')] * len(scores)
                 mask[close_bracket] = scores[close_bracket]
                 return mask
+
             return scores
 
         if not param:
-            raw_param = param_prefix.split(',')[-1].lstrip(' ')
+            raw_param: str = param_prefix.split(',')[-1].lstrip(' ')
 
             if not raw_param.startswith('"'):
-                quote_token = vocab.get('"')
+                quote_token: int | None = vocab.get('"')
 
                 if quote_token is not None:
-                    mask: list[float] = [float('-inf')] * len(scores)
+                    mask = [float('-inf')] * len(scores)
                     mask[quote_token] = scores[quote_token]
                     return mask
+
             else:
                 keys_without_quote: list[str] = [k[1:] for k in
                                                  list_unused_keys]
-                new_scores: list[float] = utils.filter_score(
+                new_scores = utils.filter_score(
                     keys_without_quote,
                     '',
                     vocab, scores
@@ -126,7 +144,7 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
             colon_token = vocab.get(':')
 
             if colon_token is not None:
-                mask: list[float] = [float('-inf')] * len(scores)
+                mask = [float('-inf')] * len(scores)
                 mask[colon_token] = scores[colon_token]
                 return mask
 
@@ -144,12 +162,11 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
                         string_content: str = after_colon.lstrip('"')
 
                         if (string_content and
-                           utils.check_repetition(string_content)):
+                           utils.check_repetition(string_content, 3)):
                             quote_token = vocab.get('"')
 
                             if quote_token is not None:
-                                mask: list[float] = ([float('-inf')] *
-                                                     len(scores))
+                                mask = ([float('-inf')] * len(scores))
                                 mask[quote_token] = scores[quote_token]
                                 return mask
 
@@ -161,20 +178,20 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
                                   not token_str.endswith('"')):
                                 scores[token_id] = float('-inf')
 
-                            elif '\n' in token_str or '\r' in token_str:
+                            elif '\\n' in token_str or '\\r' in token_str:
                                 scores[token_id] = float('-inf')
 
                         return scores
 
                     else:
-                        mask: list[float] = [float('-inf')] * len(scores)
+                        mask = [float('-inf')] * len(scores)
                         comma_token = vocab.get(',')
                         if comma_token is not None:
                             mask[comma_token] = scores[comma_token]
                         return mask
 
                 elif not parts[1].strip():
-                    new_scores: list[float] = utils.selection_type(
+                    new_scores = utils.selection_type(
                         param_type,
                         vocab,
                         scores
@@ -184,8 +201,7 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
             return scores
 
         keys_list: list[str] = utils.filter_list_str(param, list_unused_keys)
-        new_scores: list[float] = utils.filter_score(keys_list, param, vocab,
-                                                     scores)
+        new_scores = utils.filter_score(keys_list, param, vocab, scores)
 
     else:
         return scores

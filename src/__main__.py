@@ -1,7 +1,7 @@
 import sys
 try:
     from src.parser import Parser
-    from src.models import FunctionsDefinition, PromptTest
+    from src.models import FunctionsDefinition, PromptTest, FunctionCall
     from src.load_json import parse_json, create_json
     from src.utils import convert_in_models
     from src.generator_llm import GeneratorLlm
@@ -12,7 +12,7 @@ except ImportError as e:
     sys.exit()
 
 
-def main():
+def main() -> None:
 
     try:
 
@@ -55,19 +55,19 @@ def main():
             sys.exit()
 
         try:
-            model_prompt: list[BaseModel] = convert_in_models(
+            model_prompt: list[PromptTest] = convert_in_models(
                                                 data_prompt,
                                                 PromptTest
-                                            )
+                                                )
         except Exception as e:
             print(f'[ERROR] input: function_calling_test."prompt": -> {e}')
             sys.exit()
 
         try:
-            model_function: list[BaseModel] = convert_in_models(
+            model_function: list[FunctionsDefinition] = convert_in_models(
                                                 data_fonction,
                                                 FunctionsDefinition
-                                            )
+                                                )
         except Exception:
             print("[ERROR] models.py: Failed to convert functions to"
                   "FunctionsDefinition models")
@@ -79,7 +79,10 @@ def main():
             output: list[BaseModel] = []
             for prompt in model_prompt:
 
-                rst: BaseModel = generator.execute_llm(prompt, model_function)
+                rst: FunctionCall = generator.execute_llm(
+                    prompt,
+                    model_function
+                    )
                 output.append(rst.model_dump())
 
             create_json(valid_parser.output, output)
