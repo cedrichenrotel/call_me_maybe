@@ -15,8 +15,7 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
     to the scores of subsequent tokens to ensure compliance with the function’s
     schema.
     """
-
-    print(f'[DEBUG] -> JSON_STR: {repr(json_str)}')
+    
     json_clean: str = json_str.replace(' ', '')
     if '"name":"' not in json_clean:
 

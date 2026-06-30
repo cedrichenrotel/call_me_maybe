@@ -74,11 +74,19 @@ class GeneratorLlm():
                       "bracket.")
 
             json_str = self.llm_model.decode(json_tokens)
-            print(f"{json_str}")
 
             data = json.loads(json_str)
             data['prompt'] = prompt.prompt
 
+            for f in lst_function:
+                if f.name == data.get('name'):
+
+                    for key, val in f.parameters.items():
+                        if val['type'] == 'number':
+                            data['parameters'][key] = float(
+                                data['parameters'][key])
+
+            print(f"{data}")
             return FunctionCall(**data)
         except json.decoder.JSONDecodeError as e:
             print(f"[ERROR] GeneratorLlm.py: {e}")
