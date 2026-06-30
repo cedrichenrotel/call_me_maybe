@@ -28,3 +28,8 @@ llm-sdk = { workspace = true }
 
 [tool.uv]
 index-strategy = "unsafe-best-match"
+
+[tool.mypy]
+ignore_missing_imports = true
+exclude = ["llm_sdk"]
+disable_error_code = ["misc"]

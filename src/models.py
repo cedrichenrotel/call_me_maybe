@@ -8,7 +8,7 @@ except ImportError:
 
 class FunctionsDefinition(BaseModel):
     name: str
-    parameters: dict
+    parameters: dict[str, dict[str, Any]]
 
 
 class PromptTest(BaseModel):

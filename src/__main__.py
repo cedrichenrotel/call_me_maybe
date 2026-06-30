@@ -5,6 +5,7 @@ try:
     from src.load_json import parse_json, create_json
     from src.utils import convert_in_models
     from src.generator_llm import GeneratorLlm
+    from typing import Any
     import argparse
     from pydantic import ValidationError, BaseModel
 except ImportError as e:
@@ -41,13 +42,13 @@ def main() -> None:
             sys.exit()
 
         try:
-            data_prompt: list[dict] = parse_json(valid_parser.input)
+            data_prompt: list[dict[str, Any]] = parse_json(valid_parser.input)
         except Exception as e:
             print(f"[ERROR] input: function_calling_test.json -> {e}")
             sys.exit()
 
         try:
-            data_fonction: list[dict] = parse_json(
+            data_fonction: list[dict[str, Any]] = parse_json(
                                             valid_parser.functions_definition
                                             )
         except Exception as e:

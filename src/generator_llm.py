@@ -1,12 +1,13 @@
 import sys
 try:
-    from llm_sdk import Small_LLM_Model  # type: ignore
+    from llm_sdk import Small_LLM_Model  # type: ignore[attr-defined]
     from src.models import FunctionCall, PromptTest, FunctionsDefinition
     from src.load_json import parse_json
     import src.constrained_decoding
     import src.utils
     import torch
     import json
+    from pathlib import Path
 except ImportError as e:
     print(f'[IMPORT ERROR]: {e}')
     sys.exit()
@@ -19,7 +20,7 @@ class GeneratorLlm():
 
         self.vocab_path: str = self.llm_model.get_path_to_vocab_file()
 
-        self.vocab: dict[str, int] = parse_json(self.vocab_path)
+        self.vocab: dict[str, int] = parse_json(Path(self.vocab_path))
 
         self.clean_vocab: dict[str, int] = {
             token_str.replace('Ġ', ' '): token_id
@@ -43,8 +44,9 @@ class GeneratorLlm():
             max_tokens = 200
 
             while len(json_tokens) < max_tokens:
-                input_ids: list[float] = src.utils.build_input_ids(lst_token,
-                                                                   json_tokens)
+                input_ids: list[int] = src.utils.build_input_ids(
+                    lst_token, json_tokens
+                )
 
                 scores: list[float] = (self.llm_model.
                                        get_logits_from_input_ids(input_ids))

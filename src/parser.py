@@ -14,6 +14,7 @@ class Parser(BaseModel):
 
     """checks whether the files exist by verifying that the path is correct"""
     @field_validator('input', 'functions_definition')
+    @classmethod
     def exit_path(cls, p: Path) -> Path:
 
         if not p.is_file():
@@ -22,6 +23,7 @@ class Parser(BaseModel):
 
     """checks whether the file type is .json"""
     @field_validator('input', 'functions_definition', 'output')
+    @classmethod
     def valid_type_file(cls, p: Path) -> Path:
 
         if p.suffix != '.json':

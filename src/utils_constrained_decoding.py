@@ -35,7 +35,7 @@ def keyword_search(json_str: str, word: str) -> str:
     return json_str.split(word)[-1]
 
 
-def filter_score(elements: list[str], prefix: str, vocab: dict,
+def filter_score(elements: list[str], prefix: str, vocab: dict[str, int],
                  scores: list[float]) -> list[float]:
     """Hides the scores to retain only the valid tokens for
      the elements provided."""
@@ -58,7 +58,9 @@ def filter_score(elements: list[str], prefix: str, vocab: dict,
     return scores
 
 
-def selection_type(hint: str, vocab: dict, scores: list[float]) -> list[float]:
+def selection_type(
+        hint: str, vocab: dict[str, int], scores: list[float]
+) -> list[float]:
     """Forces the model to select tokens that match the expected type."""
 
     if hint == 'boolean':
