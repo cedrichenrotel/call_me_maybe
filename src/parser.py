@@ -12,7 +12,7 @@ class Parser(BaseModel):
     output: Path
     functions_definition: Path
 
-    """verifie si les fichier exit en verifiant si le chemin est correct"""
+    """checks whether the files exist by verifying that the path is correct"""
     @field_validator('input', 'functions_definition')
     def exit_path(cls, p: Path) -> Path:
 
@@ -20,7 +20,7 @@ class Parser(BaseModel):
             raise ValueError(f'The path to the {p} file does not exist')
         return p
 
-    """verifie si le type de fichier est .json"""
+    """checks whether the file type is .json"""
     @field_validator('input', 'functions_definition', 'output')
     def valid_type_file(cls, p: Path) -> Path:
 

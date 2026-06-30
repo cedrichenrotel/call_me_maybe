@@ -19,7 +19,6 @@ class GeneratorLlm():
 
         self.vocab_path: str = self.llm_model.get_path_to_vocab_file()
 
-        # liste de tous les tokens que l intelligeance connais
         self.vocab: dict[str, int] = parse_json(self.vocab_path)
 
         self.clean_vocab: dict[str, int] = {
@@ -44,12 +43,9 @@ class GeneratorLlm():
             max_tokens = 200
 
             while len(json_tokens) < max_tokens:
-                # combine 2 liste de tokens deja existant en une liste
                 input_ids: list[float] = src.utils.build_input_ids(lst_token,
                                                                    json_tokens)
 
-                # liste de tous les score des prochains token (1 score par
-                # token)
                 scores: list[float] = (self.llm_model.
                                        get_logits_from_input_ids(input_ids))
 
@@ -58,7 +54,6 @@ class GeneratorLlm():
                     ''
                     )
 
-                # prefiltre les token qui serait plus interessant
                 filter_score = src.constrained_decoding.constrained_decoding(
                     scores,
                     json_tokens,
@@ -67,11 +62,9 @@ class GeneratorLlm():
                     json_str
                 )
 
-                # recupere la plus haute valeur du prochain token
                 json_tokens = src.utils.select_best_token(json_tokens,
                                                           filter_score)
 
-                # condition d arret pour la boucle
                 if src.utils.bracket_validator(
                         self.llm_model.decode(json_tokens)):
                     break

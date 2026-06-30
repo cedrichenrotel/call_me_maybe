@@ -11,9 +11,9 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
                          list_function: list[FunctionsDefinition],
                          json_str: str) -> list[float]:
     """
-    Analyse l'état actuel du JSON généré et applique des contraintes sur les
-    scores des prochains tokens pour forcer le respect du schéma de la
-    fonction.
+    Analyses the current state of the generated JSON and applies constraints
+    to the scores of subsequent tokens to ensure compliance with the function’s
+    schema.
     """
 
     print(f'[DEBUG] -> JSON_STR: {repr(json_str)}')
@@ -23,7 +23,7 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
         opening_normalized: str = '{"name":"'
         normalized: str = json_str.replace(' ', '')
 
-        next_char: str = opening_normalized[0]  # défaut : '{'
+        next_char: str = opening_normalized[0]
         for i in range(len(opening_normalized), 0, -1):
             if normalized.endswith(opening_normalized[:i]):
                 if i < len(opening_normalized):
@@ -141,7 +141,7 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
                 if param_type == "string":
                     after_colon = parts[1]
 
-                    if after_colon.count('"') < 2:
+                    if after_colon.replace('\\"', '').count('"') < 2:
                         string_content: str = after_colon.lstrip('"')
 
                         if (string_content and
@@ -156,6 +156,13 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
 
                         for token_str, token_id in vocab.items():
                             if '}' in token_str or ',' in token_str:
+                                scores[token_id] = float('-inf')
+
+                            elif ('"' in token_str and
+                                  not token_str.endswith('"')):
+                                scores[token_id] = float('-inf')
+
+                            elif '\n' in token_str or '\r' in token_str:
                                 scores[token_id] = float('-inf')
 
                         return scores

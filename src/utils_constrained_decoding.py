@@ -1,8 +1,8 @@
 def filter_vocab_by_prefix(element: str, vocab: dict[str, int]) -> list[int]:
     """
-    Filtre le vocabulaire pour ne garder que les tokens qui peuvent
-    continuer ou écrire l'élément attendu, en gérant les espaces des
-    tokenizers.
+    Filters the vocabulary to retain only those tokens that can
+    continue or complete the expected element, whilst handling the spaces from
+    the tokenisers.
     """
     filter_score: list[int] = []
 
@@ -21,21 +21,21 @@ def filter_vocab_by_prefix(element: str, vocab: dict[str, int]) -> list[int]:
 
 
 def filter_list_str(prefix: str, elements: list[str]) -> list[str]:
-    """Retourne tous les noms (clés ou fonctions) qui commencent par le
-    préfixe."""
+    """Returns all names (keys or functions) that begin with the
+    préfix."""
 
     return [element for element in elements if element.startswith(prefix)]
 
 
 def keyword_search(json_str: str, word: str) -> str:
-    """Isole la fin de la chaîne après le mot-clé recherché."""
+    """Isolates the end of the string after the search term."""
     return json_str.split(word)[-1]
 
 
 def filter_score(elements: list[str], prefix: str, vocab: dict,
                  scores: list[float]) -> list[float]:
-    """Masque les scores pour ne garder que les tokens valides pour
-    les éléments fournis."""
+    """Hides the scores to retain only the valid tokens for
+     the elements provided."""
     rst: list[int] = []
 
     for element in elements:
@@ -93,6 +93,20 @@ def is_key_complete(key: str, param_prefix: str) -> bool:
     if after_key.count('"') >= 2:
         return True
     return False
+
+
+def count_unescaped_quotes(s: str) -> int:
+    """Compte les guillemets non-échappés dans s."""
+    count = 0
+    i = 0
+    while i < len(s):
+        if s[i] == '\\':
+            i += 2
+        else:
+            if s[i] == '"':
+                count += 1
+            i += 1
+    return count
 
 
 def check_repetition(json_txt: str, min_len: int = 3) -> bool:
