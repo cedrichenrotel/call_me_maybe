@@ -20,7 +20,7 @@ def main() -> None:
         args_parser = argparse.ArgumentParser()
 
         args_parser.add_argument('--input', default=(
-                'data/input/function_calling_tests.json'
+                'data/input/function_calling_results.json'
                 )
         )
         args_parser.add_argument('--output', default=(
