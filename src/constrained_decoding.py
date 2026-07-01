@@ -19,21 +19,17 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
     json_clean: str = json_str.replace(' ', '')
 
     if '"name":"' not in json_clean:
-
         opening_normalized: str = '{"name":"'
         normalized: str = json_str.replace(' ', '')
-        next_char: str = opening_normalized[0]
+        remaining: str = opening_normalized
 
         for i in range(len(opening_normalized), 0, -1):
 
             if normalized.endswith(opening_normalized[:i]):
-
-                if i < len(opening_normalized):
-                    next_char = opening_normalized[i]
-
+                remaining = opening_normalized[i:]
                 break
 
-        rst: set[int] = set(utils.filter_vocab_by_prefix(next_char, vocab))
+        rst: set[int] = set(utils.filter_vocab_by_prefix(remaining, vocab))
 
         for index, _ in enumerate(scores):
 
@@ -58,7 +54,8 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
         new_scores: list[float] = utils.filter_score(names_func,
                                                      prefix,
                                                      vocab,
-                                                     scores
+                                                     scores,
+                                                     forbid_space=True
                                                      )
 
     elif '"name":"' in json_clean and '"parameters":{' in json_clean:
@@ -178,7 +175,8 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
                                   not token_str.endswith('"')):
                                 scores[token_id] = float('-inf')
 
-                            elif '\\n' in token_str or '\\r' in token_str:
+                            elif ('\\n' in token_str or '\\r' in token_str or
+                                  '\\' in token_str):
                                 scores[token_id] = float('-inf')
 
                         return scores
@@ -205,4 +203,5 @@ def constrained_decoding(scores: list[float], json_tokens: list[int],
 
     else:
         return scores
+
     return new_scores

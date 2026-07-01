@@ -1,4 +1,5 @@
-def filter_vocab_by_prefix(element: str, vocab: dict[str, int]) -> list[int]:
+def filter_vocab_by_prefix(element: str, vocab: dict[str, int],
+                           forbid_space: bool = False) -> list[int]:
     """
     Filters the vocabulary to retain only those tokens that can
     continue or complete the expected element, whilst handling the spaces from
@@ -9,8 +10,7 @@ def filter_vocab_by_prefix(element: str, vocab: dict[str, int]) -> list[int]:
 
     for token_str, token_id in vocab.items():
 
-        if len(token_str) > 0 and token_str.strip() == "":
-            filter_score.append(token_id)
+        if forbid_space and ' ' in token_str:
             continue
 
         match_token: str = token_str.lstrip()
@@ -36,14 +36,16 @@ def keyword_search(json_str: str, word: str) -> str:
 
 
 def filter_score(elements: list[str], prefix: str, vocab: dict[str, int],
-                 scores: list[float]) -> list[float]:
+                 scores: list[float], forbid_space: bool = False
+                 ) -> list[float]:
     """Hides the scores to retain only the valid tokens for
      the elements provided."""
 
     rst: list[int] = []
 
     for element in elements:
-        rst.extend(filter_vocab_by_prefix(element[len(prefix):], vocab))
+        rst.extend(filter_vocab_by_prefix(element[len(prefix):], vocab,
+                                          forbid_space))
 
     if len(rst) == 0:
         return scores

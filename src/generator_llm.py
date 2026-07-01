@@ -1,6 +1,6 @@
 import sys
 try:
-    from llm_sdk import Small_LLM_Model  # type: ignore[attr-defined]
+    from llm_sdk import Small_LLM_Model  # type: ignore
     from src.models import FunctionCall, PromptTest, FunctionsDefinition
     from src.load_json import parse_json
     import src.constrained_decoding
@@ -92,4 +92,5 @@ class GeneratorLlm():
             return FunctionCall(**data)
         except json.decoder.JSONDecodeError as e:
             print(f"[ERROR] GeneratorLlm.py: {e}")
+            print(f"[ERROR] GeneratorLlm.py: raw json_str={json_str!r}")
             sys.exit()

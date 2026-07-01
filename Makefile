@@ -11,7 +11,7 @@ run:
 	$(UV) run python -m src \
 		--functions_definition data/input/functions_definition.json \
 		--input data/input/function_calling_tests.json \
-		--output data/output/function_calls_results.json
+		--output data/output/function_call_results.json
 
 debug:
 	$(UV) run python -m pdb $(FILE)
